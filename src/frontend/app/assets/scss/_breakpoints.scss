@@ -1,0 +1,55 @@
+// ========================================
+// SIMPLE BREAKPOINT SYSTEM
+// ========================================
+
+// Basic breakpoints
+$mobile: 768px;
+$tablet: 1024px;
+$desktop: 1200px;
+
+@mixin mobile {
+	@media (max-width: #{$mobile - 1px}) {
+		@content;
+	}
+}
+
+@mixin tablet {
+	@media (min-width: #{$mobile}) and (max-width: #{$tablet - 1px}) {
+		@content;
+	}
+}
+
+@mixin desktop {
+	@media (min-width: #{$tablet}) {
+		@content;
+	}
+}
+
+@mixin flex($direction: row, $justify: flex-start, $align: stretch, $wrap: nowrap) {
+	display: flex;
+	flex-direction: $direction;
+	justify-content: $justify;
+	align-items: $align;
+	flex-wrap: $wrap;
+}
+
+@mixin responsive-grid($mobile-cols: 1, $tablet-cols: 2, $desktop-cols: 3, $gap: 1rem) {
+	@include flex(row, flex-start, stretch, wrap);
+	gap: $gap;
+
+	>* {
+		flex: 0 0 calc(100% / #{$mobile-cols} - #{$gap * ($mobile-cols - 1) / $mobile-cols});
+	}
+
+	@include tablet {
+		>* {
+			flex: 0 0 calc(100% / #{$tablet-cols} - #{$gap * ($tablet-cols - 1) / $tablet-cols});
+		}
+	}
+
+	@include desktop {
+		>* {
+			flex: 0 0 calc(100% / #{$desktop-cols} - #{$gap * ($desktop-cols - 1) / $desktop-cols});
+		}
+	}
+}

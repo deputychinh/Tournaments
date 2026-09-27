@@ -1,0 +1,1 @@
+export type TTournamentStatus = 'scheduled' | 'ongoing' | 'completed';

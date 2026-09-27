@@ -1,0 +1,77 @@
+version: "3.9"
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: esports_db
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      TZ: ${TZ}
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db-schema.sql:/docker-entrypoint-initdb.d/00-schema.sql:ro
+      - ./seed.sql:/docker-entrypoint-initdb.d/01-seed.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    container_name: esports_redis
+    ports:
+      - "6380:6379"
+
+  api:
+    build:
+      context: ./src/backend
+    container_name: esports_api
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      API_PREFIX: /api
+      API_VERSION: v1
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: ${MYSQL_USER}
+      DB_PASS: ${MYSQL_PASSWORD}
+      DB_NAME: ${MYSQL_DATABASE}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_ACCESS_TTL: ${JWT_ACCESS_TTL}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_REFRESH_TTL: ${JWT_REFRESH_TTL}
+      RATE_LIMIT_TTL: ${RATE_LIMIT_TTL}
+      RATE_LIMIT_LIMIT: ${RATE_LIMIT_LIMIT}
+      TZ: ${TZ}
+    ports:
+      - "3001:3001"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  web:
+    build:
+      context: ./src/frontend
+      args:
+        NUXT_PUBLIC_API_BASE: http://localhost:3001/api/v1
+    container_name: esports_web
+    environment:
+      NUXT_PUBLIC_API_BASE: http://localhost:3001/api/v1
+      TZ: ${TZ}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  db_data:

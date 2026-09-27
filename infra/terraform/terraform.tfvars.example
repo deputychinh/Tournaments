@@ -1,0 +1,10 @@
+aws_region  = "ap-southeast-1"
+project     = "esports-tournament"
+environment = "production"
+
+db_password         = "change-me-strong-password"
+jwt_access_secret   = "change-me-access-secret"
+jwt_refresh_secret  = "change-me-refresh-secret"
+
+api_image_tag = "latest"
+web_image_tag = "latest"
